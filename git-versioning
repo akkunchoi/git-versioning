@@ -1,0 +1,109 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+
+# @version 0.0.1
+#
+# TODO: prefix auto detect
+#
+
+require "rubygems"
+require "thor"
+
+class GitVersioning < Thor
+  class Tag
+    def initialize(array)
+      array.map! do |v|
+        v.to_i
+      end
+      @v = array
+    end
+
+    def self.from_str(str)
+      #if md = str.match(/.*?(\d+).+?(\d+).+?(\d+)(?:.+?(\d+))?/) 
+      if md = str.match(/.*?(\d+).+?(\d+).+?(\d+).*?/) 
+        t = Tag.new(md.to_a[1, md.to_a.size])
+        return t
+      end  
+      return nil
+    end
+
+    def version_a
+      @v
+    end
+
+    def <=>(target)
+      a = self.version_a
+      b = target.version_a
+      
+      (0..10).each do |i|
+        comp = a[i] <=> b[i]
+        return comp unless comp == 0
+      end
+      return 0
+    end
+
+    def up(level)
+      table = {major: 0, minor: 1, patch:2}
+      
+      if table[level.to_sym]
+        level = table[level.to_sym]
+      elsif level.match(/\d/)
+        level = level.to_i 
+      end
+      
+      new_version = @v.dup
+      new_version[level] = new_version[level] + 1
+      self.class.new(new_version)
+    end
+
+    def to_s
+      @v.join('.')
+    end
+  end
+
+  def self.tags
+    tags = []
+    `git tag`.split(/\s+/).each do |tag|
+      t = Tag.from_str(tag)
+      tags << t if t
+    end
+    tags
+  end
+    
+  def self.latest
+    self.tags.sort.pop
+  end
+
+  include Thor::Actions
+
+  desc "patch", "add a tag that current patch number is incremented in Git"
+  option :pre
+  option :post
+  option :major, :aliases => [:m]
+  option :minor, :aliases => [:i]
+  option :patch, :aliases => [:p]
+  option :commit, :aliases => [:c]
+  option :all, :aliases => [:a]
+  
+  def up
+    tag = GitVersioning.latest
+    new_tag = tag.up(:patch)
+
+    full = options[:pre].to_s + new_tag.to_s + options[:post].to_s 
+
+    if options[:commit]
+      flag = "-m"
+      if options[:all]
+        flag = "-am"
+      end
+      cmd = %Q(git commit #{flag} "#{full}")
+      run cmd 
+    end
+
+    cmd = %Q(git tag -a #{full} -m "#{full}")
+    run cmd
+  end
+
+end
+
+GitVersioning.start
