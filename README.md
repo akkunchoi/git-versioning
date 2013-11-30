@@ -32,12 +32,12 @@ then the new version tag is created!
 
 ## Options
 
-   --pre
-   --post
-   --major, -m
-   --minor, -i
-   --patch, -p
-   --commit, -c
-   --all, -a
+    --pre
+    --post
+    --major, -m
+    --minor, -i
+    --patch, -p
+    --commit, -c
+    --all, -a
 
 
