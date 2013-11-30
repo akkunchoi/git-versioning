@@ -6,7 +6,7 @@ See also: [Semantic Versioning](http://semver.org/)
 
 ## Installation
 
-1. Download [it](path)
+1. Download [it](https://raw.github.com/akkunchoi/git-versioning/master/git-versioning)
 2. and put on PATH you like  
 
 ## Usage
